@@ -1,6 +1,7 @@
 import numpy as np
 import random
-
+#IMPORTANT NOTICE: ALL OF THE CHECK FUNCTIONS MIGHT NEED TO BE CHANGED BASED ON HOW THE CODE IS PLANNING TO RUN
+#FOR EXAMPLE: DOES HIGH CARD OF 10 FEED IN JUST "10" OR "S10"
 class Card:
     def __init__ (self, suit, value):
         self.suit = suit
@@ -92,12 +93,17 @@ def CheckStraight(cardPool, highCard):
 
 #How to make sure cards lower than highCard are not considered?
 def CheckFlush(cardPool, highCard, suit):
-    suitList = [card[:1] for card in cardPool]
+    #Only considers cards lower than highCard for flush
+    orderList = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
+    high_card_index = orderList.index(highCard[1:])
+    high_card_and_smaller = [card for card in cardPool if orderList.index(card[1:]) >= high_card_index]
+    suitList = [card[:1] for card in high_card_and_smaller]
     if suitList.count(suit) >= 5 and CheckHigh(cardPool,highCard):
         return True
     return False
 
-
+#Havent't tested
+#Check if full house exists (3 of triple card, 2 of pair card), True if it does, False if it does not
 def CheckFullHouse(cardPool, tripleCard, pairCard):
     if CheckThreeKind(cardPool,tripleCard) and CheckPair(cardPool,pairCard):
         return True
@@ -110,11 +116,14 @@ def CheckFourKind(cardPool, quadCard):
         return True
     return False
 
+#This function does not work bruh idiot, need to check if the top 5 cards are the straight
 def CheckStraightFlush(cardPool, highCard, suit):
     if CheckStraight(cardPool,highCard) and CheckFlush(cardPool,highCard,suit):
         return True
     return False
 
+#Haven't tested
+#Checks if Royal Flush (Straight flush high of A) exists, True if it does, False if it does not
 def CheckRoyalFlush(cardPool, suit):
     return CheckStraightFlush(cardPool,'A',suit)
 #end of check cards
