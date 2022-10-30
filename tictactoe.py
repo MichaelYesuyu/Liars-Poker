@@ -77,7 +77,31 @@ class Board:
                         new_board[i][j] = -1
                         children.append(new_board)
         return children
-
+    def minmaxO(self, node, depth, maximizingPlayer):
+        #if we are 0, then we want to minimize the resulting board
+        #if we are X, then we want to maximize the resulting board
+        if depth == 0 or self.is_terminal(node):
+            return self.evaluate_position(node), node
+        
+        if maximizingPlayer:
+            bestValue = 1000
+            children = self.get_children(node,True)
+            for child in children:
+                v, _ = self.minimax(child, depth-1, False)
+                if v > bestValue:
+                    bestBoard = child
+                    bestValue = v
+            return bestValue, bestBoard
+        
+        else: #minimizing player
+            bestValue = 1000
+            children = self.get_children(node,False)
+            for child in children:
+                v, _ = self.minimax(child, depth-1, True)
+                if v < bestValue:
+                    bestBoard = child
+                    bestValue = v 
+            return bestValue, bestBoard
     #Node is a given board position
     def minimax(self, node, depth, maximizingPlayer):
         
@@ -111,21 +135,21 @@ if __name__ == "__main__":
         board.print_board() 
         print(board.is_terminal(board.board))
         while not board.is_terminal(board.board):
-            print("hello")
             board.print_board()
             x = int(input("Give an x position: "))
             y = int(input("Give a y position: "))
             board.make_move((y,x), True)
-            _, board.board = board.minimax(board.board, 9, False)
+            value, board.board = board.minimax(board.board, 9, False)
+            print("board value: ", value)
         board.print_board()
     elif play_first == 1:
         board = Board(False) #initiate the board to 0   
         board.print_board() 
         print(board.is_terminal(board.board))
         while not board.is_terminal(board.board):
-            print("hello")
-            _, board.board = board.minimax(board.board, 9, True)
+            value, board.board = board.minimax(board.board, 9, True)
             board.print_board()
+            print("board value: ", value)
             if not board.is_terminal(board.board):
                 x = int(input("Give an x position: "))
                 y = int(input("Give a y position: "))
