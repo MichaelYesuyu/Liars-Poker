@@ -127,6 +127,39 @@ class Board:
                     bestValue = v
             return bestValue, bestBoard #recursively compute up the value tree
 
+    def abpruning(self, node, depth, alpha, beta, maximizingPlayer):
+        
+        if depth == 0 or self.is_terminal(node):
+            return self.evaluate_position(node), node
+        
+        if maximizingPlayer:
+            bestValue = -1000
+            children = self.get_children(node,True)
+            for child in children:
+                v, _ = self.abpruning(child, depth-1, alpha, beta, False)
+                if v > alpha:
+                    alpha = v
+                if v > bestValue:
+                    bestBoard = child
+                    bestValue = v
+                if beta <= alpha:
+                    break
+            return bestValue, bestBoard
+        
+        else: #minimizing player
+            bestValue = 1000
+            children = self.get_children(node,False) # get the O children
+            for child in children:
+                v, _ = self.abpruning(child, depth-1, alpha, beta, True) # now have X pick its best move
+                if v < beta:
+                    beta = v
+                if v < bestValue:
+                    bestBoard = child
+                    bestValue = v
+                if beta <= alpha:
+                    break
+            return bestValue, bestBoard #recursively compute up the value tree
+
 if __name__ == "__main__":
     play_first = int(input("0 to play first, 1 to play second: "))
     if play_first == 0:
@@ -138,7 +171,8 @@ if __name__ == "__main__":
             x = int(input("Give an x position: "))
             y = int(input("Give a y position: "))
             board.make_move((y,x), True)
-            value, board.board = board.minimax(board.board, 9, False)
+            #value, board.board = board.minimax(board.board, 9, False)
+            value, board.board = board.abpruning(board.board, 9, -100, 100, False)
             print("board value: ", value)
         board.print_board()
     elif play_first == 1:
@@ -146,7 +180,8 @@ if __name__ == "__main__":
         board.print_board() 
         print(board.is_terminal(board.board))
         while not board.is_terminal(board.board):
-            value, board.board = board.minimax(board.board, 9, True)
+            #value, board.board = board.minimax(board.board, 9, True)
+            value, board.board = board.abpruning(board.board, 9, -100, 100, True)
             board.print_board()
             print("board value: ", value)
             if not board.is_terminal(board.board):
