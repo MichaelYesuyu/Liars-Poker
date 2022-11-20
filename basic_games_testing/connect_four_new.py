@@ -1,3 +1,4 @@
+
 from string import Formatter
 import numpy as np
 import numpy.linalg as la
@@ -25,6 +26,7 @@ class ConnectFour:
                 else:
                     print("   |", end = "")
             print("")
+        print("---------------------------------")
     
     def evaluate_board(self, board):
       #Check rightwards facing diagonal
@@ -58,7 +60,7 @@ class ConnectFour:
       return 0
 
     def game_over(self, board):
-        if self.evaluate_board(board) != 0:
+        if self.evaluate_board(board) != 0 or np.count_nonzero(board) == NUM_COLS * NUM_ROWS:
             return True
         return False
 
@@ -134,7 +136,7 @@ class ConnectFour:
 
 
 if __name__ == "__main__":
-    play_first = int(input("0 to play first, 1 to play second, 2 for two player: "))
+    play_first = int(input("0 to play first, 1 to play second, 2 for computer to play itself: "))
     #Would a structure like this work?
     if play_first == 0:
         board = ConnectFour(False) #initiate the board to 0   
@@ -144,7 +146,7 @@ if __name__ == "__main__":
             board.print_board()
             col = int(input("Red give a column: "))
             board.board = board.move(board.board, col, True)
-            value, board.board = board.abpruning(board.board, 5, -100, 100, False)
+            value, board.board = board.abpruning(board.board, 8, -100, 100, False)
             board.print_board()
         board.print_board()
     elif play_first == 1:
@@ -152,33 +154,25 @@ if __name__ == "__main__":
         board.print_board() 
         print(board.game_over(board.board))
         while not board.game_over(board.board):
-            value, board.board = board.abpruning(board.board, 5, -100, 100, True)
+            value, board.board = board.abpruning(board.board, 8, -100, 100, True)
             board.print_board()
             print("board value: ", value)
             if not board.game_over(board.board):
                 col = int(input("Yellow give a column: "))
                 board.board = board.move(board.board, col, False)
-                board.print_board()
+                #board.print_board()
            
         board.print_board()
     #This is not used
     elif play_first == 2:
-        board = ConnectFour(True)
-        while True:
-            col = int(input("Red give a column: "))
-            if board.is_terminal(board.board, (board.tops[col], col), True):
-                board.make_move(col, True)
-                break
-            else:
-                board.make_move(col, True)
-            board.print_board()
-            col = int(input("Yellow give a column: "))
-            if board.is_terminal(board.board, (board.tops[col], col), False):
-                board.make_move(col, False)
-                break
-            else:
-                board.make_move(col, False)
+        board = ConnectFour(False) #initiate the board to 0   
+        board.print_board() 
+        print(board.game_over(board.board))
+        while not board.game_over(board.board):
+            board.print_board()    
+            value, board.board = board.abpruning(board.board, 8, -100, 100, True)
+            value, board.board = board.abpruning(board.board, 8, -100, 100, False)
             board.print_board()
         board.print_board()
     else:
-        print("Type 1 or 0 only")
+        print("Type 2 or 1 or 0 only")
