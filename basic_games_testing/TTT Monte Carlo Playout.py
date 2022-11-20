@@ -64,7 +64,7 @@ class Board:
         valid_moves_list = []
         for i in range(3):
             for j in range(3):
-                if board.board[i][j] == 0:
+                if self.board[i][j] == 0:
                     valid_moves_list.append((i,j))
         return valid_moves_list
 
