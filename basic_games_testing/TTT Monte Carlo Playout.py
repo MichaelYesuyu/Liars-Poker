@@ -41,12 +41,12 @@ class Board:
     def make_move(self, pos):
         if self.is_terminal():
             return
-        if board.turn == 'X' and self.board[pos[0],pos[1]] == 0:
+        if self.turn == 'X' and self.board[pos[0],pos[1]] == 0:
             self.board[pos[0],pos[1]] = 1
-            board.turn = 'O'
-        elif board.turn == 'O' and self.board[pos[0],pos[1]] == 0: 
+            self.turn = 'O'
+        elif self.turn == 'O' and self.board[pos[0],pos[1]] == 0: 
             self.board[pos[0],pos[1]] = -1
-            board.turn = 'X'
+            self.turn = 'X'
         self.move_list.append(pos)
     
     def undo_move(self):
@@ -104,8 +104,8 @@ def ai_best_move(board):
         board.make_move(move)
         action_dict[move] = -1 * monte_carlo_value(board)
         board.undo_move()
-        print(board.valid_moves())
-        print(action_dict)
+    print(board.valid_moves())
+    print(action_dict)
     return max(action_dict, key=action_dict.get)
 
 if __name__ == "__main__":
