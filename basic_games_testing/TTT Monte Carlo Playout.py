@@ -31,13 +31,11 @@ class Board:
             return False
 
     def score(self):
-        #This function returns the score based on who's turn it is, combines is_terminal and evaluate_position
+        #This function returns the score based on who's turn it is, so it always returns 1 if there's a winner
+        #Didn't really need to write an explicit function but might need a more complex score function for later
         if self.evaluate_position() == 0:
             return 0
-        elif self.evaluate_position() == 1:
-            return -1 if self.turn == 'X' else 1
-        else: #Else covers evaluate_position() == -1
-            return -1 if self.turn == 'O' else 1
+        return 1
 
     #Pos is [y][x]
     def make_move(self, pos):
