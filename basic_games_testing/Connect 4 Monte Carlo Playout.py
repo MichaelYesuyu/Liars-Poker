@@ -72,10 +72,13 @@ class ConnectFour():
                     break
         return valid_moves_list
 
-    def score(self):
+    def score(self): #Need to return -1 if it's not the agent's turn and they just lost
         if self.evaluate_board() == 0:
             return 0
-        return 1
+        elif self.evaluate_board() == 1:
+            return -1 if self.turn == 'R' else 1
+        else:
+            return -1 if self.turn == 'Y' else 1
 
     def make_move(self, column):
         if self.is_terminal():
@@ -119,7 +122,7 @@ def playout_value(board):
 Finds the expected value of a game by running the specified number
 of random simulations.
 """
-def monte_carlo_value(board, N=1000):
+def monte_carlo_value(board, N=200):
     scores = [playout_value(board) for i in range(0, N)]
     return np.mean(scores)
 
