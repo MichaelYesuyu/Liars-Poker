@@ -109,19 +109,19 @@ if __name__ == "__main__":
     print(chess.print_board())
     background_color = (255,255,255)
     screen = pygame.display.set_mode((480, 480))
-    black_king = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_king.png")
-    white_king = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_king.png")
-    black_queen = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_queen.png")
-    white_queen = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_queen.png")
-    black_rook = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_rook.png")
-    white_rook = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_rook.png")
-    black_pawn = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_pawn.png")
+    black_king = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_king.png")
+    white_king = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_king.png")
+    black_queen = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_queen.png")
+    white_queen = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_queen.png")
+    black_rook = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_rook.png")
+    white_rook = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_rook.png")
+    black_pawn = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_pawn.png")
     
-    white_pawn = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_pawn.png")
-    black_bishop = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_bishop.png")
-    white_bishop = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_bishop.png")
-    black_knight = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\black_knight.png")
-    white_knight = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\Chess_Engine\\images\\white_knight.png")
+    white_pawn = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_pawn.png")
+    black_bishop = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_bishop.png")
+    white_bishop = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_bishop.png")
+    black_knight = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\black_knight.png")
+    white_knight = pygame.image.load("C:\\Users\\vrsha\\Documents\\GitHub\\Liars-Poker\\basic_games_testing\\ChessEngine\\images\\white_knight.png")
     # Set the caption of the screen
     pygame.display.set_caption('Chess')
     
@@ -133,42 +133,36 @@ if __name__ == "__main__":
             if (i + j) % 2 == 0:
                 color = (255, 255, 255)
             else:
-                color = (165,42,42)
+                color = (0,0,0)
             pygame.draw.rect(screen, color, pygame.Rect(i*60, j*60, 60, 60))
-            if chess.get_board()[j][i] == 'O':
+            if chess.get_board()[i][j] == 'O':
                 continue # do nothing
-            elif chess.get_board()[j][i] == 'K': 
+            elif chess.get_board()[i][j] == 'K': 
                 screen.blit(white_king, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'Q': 
+            elif chess.get_board()[i][j] == 'Q': 
                 screen.blit(white_queen, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'R': 
+            elif chess.get_board()[i][j] == 'R': 
                 screen.blit(white_rook, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'P': 
+            elif chess.get_board()[i][j] == 'P': 
                 screen.blit(white_pawn, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'B': 
+            elif chess.get_board()[i][j] == 'B': 
                 screen.blit(white_bishop, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'N': 
+            elif chess.get_board()[i][j] == 'N': 
                 screen.blit(white_knight, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'k': 
+            elif chess.get_board()[i][j] == 'k': 
                 screen.blit(black_king, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'q': 
+            elif chess.get_board()[i][j] == 'q': 
                 screen.blit(black_queen, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'r': 
+            elif chess.get_board()[i][j] == 'r': 
                 screen.blit(black_rook, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'p': 
+            elif chess.get_board()[i][j] == 'p': 
                 screen.blit(black_pawn, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'b': 
+            elif chess.get_board()[i][j] == 'b': 
                 screen.blit(black_bishop, (i*60, j*60))
-            elif chess.get_board()[j][i] == 'n': 
+            elif chess.get_board()[i][j] == 'n': 
                 screen.blit(black_knight, (i*60, j*60))    
     # Update the display using flip
     pygame.display.flip()
     
     # Variable to keep our game loop running
     running = True
-    while running:
-        for event in pygame.event.get():
-      
-            # Check for QUIT event      
-            if event.type == pygame.QUIT:
-                running = False
