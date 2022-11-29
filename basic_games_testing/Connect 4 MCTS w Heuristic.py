@@ -110,10 +110,6 @@ class ConnectFour():
         else:
             self.turn = 'R'
 
-    def get_state(self):
-        state = self.board.copy()
-        return state
-
 class MCTS(object):
     #Below is the stuff for balancing exploration and exploitation
 
@@ -124,16 +120,16 @@ class MCTS(object):
 
     def get_heuristic_value(self, board):
         n = self.visits.get('total',1) #Default is 1 if total is empty
-        Ni = self.visits.get(hash(board.get_state().tobytes()),1e-3) #Cannot divide by 0
-        Si = self.scores.get(hash(board.get_state().tobytes()),0)
+        Ni = self.visits.get(board.board.tobytes(),1e-3) #Cannot divide by 0
+        Si = self.scores.get(board.board.tobytes(),0)
         Vi = Si / Ni + self.C * np.sqrt(np.log(n)/Ni) #Sqrt or no sqrt?
         return Vi
 
     def record(self, board, score):
         #Add 1 to total visits, current position, add score to scores
         self.visits['total'] = self.visits.get('total', 1) + 1
-        self.visits[hash(board.get_state().tobytes())] = self.visits.get(hash(board.get_state().tobytes()),0) + 1
-        self.scores[hash(board.get_state().tobytes())] = self.scores.get(hash(board.get_state().tobytes()),0) + score
+        self.visits[board.board.tobytes()] = self.visits.get(board.board.tobytes(),0) + 1
+        self.scores[board.board.tobytes()] = self.scores.get(board.board.tobytes(),0) + score
         
     def playout_value(self, board):
         if board.is_terminal():
@@ -159,7 +155,7 @@ class MCTS(object):
         return value
 
     #Get avg score of playouts given a position
-    def monte_carlo_value(self, board, N=500):
+    def monte_carlo_value(self, board, N=10):
         scores = [self.playout_value(board) for i in range(0, N)]
         return np.mean(scores)
 
