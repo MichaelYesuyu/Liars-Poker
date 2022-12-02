@@ -1,0 +1,222 @@
+import random
+import numpy as np
+import tensorflow as tf
+
+#For the sake of testing, computer will always play as X, and will go first
+class Board:
+    def __init__(self):
+        self.board = np.zeros((3,3))
+        self.move_list = []
+        self.turn = 'X'
+
+    def evaluate_position(self):
+        cumsum = np.zeros(8)
+        for i in range(3):
+            cumsum[0] += board.board[i][i] #left diag
+            cumsum[1] += board.board[2-i][i] #right diag
+            cumsum[2] += board.board[0][i] #first row
+            cumsum[3] += board.board[1][i] #second row
+            cumsum[4] += board.board[2][i] #third row
+            cumsum[5] += board.board[i][0] #first column
+            cumsum[6] += board.board[i][1] #second column
+            cumsum[7] += board.board[i][2] #third column
+        max = np.amax(np.abs(cumsum))
+        if not max == 3:
+            return 0
+        return np.sign(cumsum[np.argmax(np.abs(cumsum))])
+
+    def is_terminal(self):
+        if np.count_nonzero(board.board) == 9 or self.evaluate_position() != 0:
+            return True
+        else:
+            return False
+
+    def score(self):
+        #This function returns the score based on who's turn it is, so it always returns 1 if there's a winner
+        #Didn't really need to write an explicit function but might need a more complex score function for later
+        if self.evaluate_position() == 0:
+            return 0
+        return 1
+
+    #Pos is [y][x]
+    def make_move(self, pos):
+        if self.is_terminal():
+            return
+        if self.turn == 'X' and self.board[pos[0],pos[1]] == 0:
+            self.board[pos[0],pos[1]] = 1
+            self.turn = 'O'
+        elif self.turn == 'O' and self.board[pos[0],pos[1]] == 0: 
+            self.board[pos[0],pos[1]] = -1
+            self.turn = 'X'
+        self.move_list.append(pos)
+    
+    def undo_move(self):
+        position_to_undo = self.move_list[-1]
+        self.board[position_to_undo[0]][position_to_undo[1]] = 0
+        self.move_list = self.move_list[:-1]
+        if self.turn == 'X':
+            self.turn = 'O'
+        else:
+            self.turn = 'X'
+
+    def valid_moves(self):
+        valid_moves_list = []
+        for i in range(3):
+            for j in range(3):
+                if self.board[i][j] == 0:
+                    valid_moves_list.append((i,j))
+        return valid_moves_list
+
+    def print_board(self):
+        for i in range(3):
+            for j in range(3):
+                print("|", end = "")
+                if self.board[i][j] == 1:
+                    print(" X |", end = "")
+                elif self.board[i][j] == -1:
+                    print(" O |", end = "")
+                else:
+                    print("   |", end="")
+            print("")
+
+class MCTS(object):
+    #Below is the stuff for balancing exploration and exploitation
+
+    def __init__(self):
+        #self.visits = {} #First key is total, then the remaining keys are states stored as hash
+        #self.scores = {}
+        #self.C = C #Adjust this parameter higher for more exploration
+        cnnmodel = CNNModel((3,3))
+        self.model = cnnmodel.build_model()
+
+
+    def get_heuristic_value(self, board):
+        input = board.board
+        input = np.expand_dims(input, axis=0) #Expend dims to fit CNN input size
+        input = np.expand_dims(input, axis=-1)
+        input = np.asarray(input)
+        #output = self.model.predict(input)
+        #print(output)
+        return self.model.predict(input, verbose=0)
+
+    def record(self, board, score):
+        input = board.board
+        input = np.expand_dims(input, axis=0) #Expand dims to fit CNN input size
+        input = np.expand_dims(input, axis=-1)
+        score = np.expand_dims(score, axis=0)
+        #print("reached")
+        #print(np.shape(input))
+        #print(np.shape(score))
+        #print(score)
+        self.model.fit(x=input,y=score,batch_size=1, verbose=0)
+        #print("success")
+        
+    def playout_value(self, board):
+        if board.is_terminal():
+            self.record(board, board.score())
+            return board.score()
+
+        #Calculate heuristic values of all valid moves
+        action_heuristic_dict = {} 
+        for move in board.valid_moves():
+            board.make_move(move)
+            action_heuristic_dict[move] = self.get_heuristic_value(board)
+            board.undo_move()
+
+        #Select move based on highest heuristic value
+        move = max(action_heuristic_dict, key=action_heuristic_dict.get)
+        board.make_move(move)
+        value = -1 * self.playout_value(board)
+        board.undo_move()
+
+        #Record the game
+        self.record(board, value)
+
+        return value
+
+    #Get avg score of playouts given a position
+    def monte_carlo_value(self, board, N=5):
+        scores = [self.playout_value(board) for i in range(0, N)]
+        return np.mean(scores)
+
+    #Picks best move
+    def ai_best_move(self, board):
+        action_dict = {}
+        for move in board.valid_moves():
+            board.make_move(move)
+            action_dict[move] = self.monte_carlo_value(board)
+            board.undo_move()
+            print(board.valid_moves())
+            print(action_dict)
+        return max(action_dict, key=action_dict.get)   
+
+class CNNModel():
+    def __init__(self, board_shape):
+        self.board_shape = board_shape
+        self.model = tf.keras.models.Sequential()
+
+    def build_model(self):
+        #inputs = tf.keras.Input(shape=(self.board_shape[0],self.board_shape[1],1)) #can this take a 2D input?
+        #x = tf.keras.layers.Conv2D(64, (3,3), activation = 'relu')(inputs)
+        #x = tf.keras.layers.Dropout(rate=0.2)(x)
+        #x = tf.keras.layers.Flatten()(x)
+        #x = tf.keras.layers.Dense(256, activation = 'linear')(x)
+        #outputs = tf.keras.layers.Dense(6, activation = 'tanh')(x)
+        #model = tf.keras.Sequential(inputs=inputs, outputs=outputs)
+        #model.compile(optimizer="Adam", loss="mse", metrics=["mae"])
+
+        self.model.add(tf.keras.layers.Conv2D(64, (3,3), input_shape = (self.board_shape[0],self.board_shape[1],1), activation = 'relu'))
+        #print(self.model.get_config())
+        ###self.model.add(tf.keras.layers.Conv2D(128, (3,3), activation = 'relu'))
+        self.model.add(tf.keras.layers.MaxPool2D(pool_size=(2,2), padding='same'))
+        #Problem arises here when trying to use another conv layer after maxpooling, find a way to fix later
+        #self.model.add(tf.keras.layers.Conv2D(128, (3,3), activation = 'relu'))
+        #self.model.add(tf.keras.layers.MaxPool2D(pool_size=(2,2), padding='valid'))
+        #self.model.add(tf.keras.layers.Conv2D(128, (3,3), activation = 'relu'))
+        #self.model.add(tf.keras.layers.MaxPool2D(pool_size=(4,4), padding='valid'))
+        self.model.add(tf.keras.layers.Dropout(rate=0.2))
+        self.model.add(tf.keras.layers.Flatten())
+        self.model.add(tf.keras.layers.Dense(256, activation='linear')) #Dense with linear
+        ###self.model.add(tf.keras.layers.Dense(256, activation='linear')) #Dense with linear
+        self.model.add(tf.keras.layers.Dense(1, activation='tanh')) #last layer is 1 because you just want a number for eval
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999,epsilon=1e-8),loss='mse') #Loss function may need changing
+        print(self.model.summary())
+        return self.model
+
+if __name__ == "__main__":
+    board = Board()
+    model = MCTS()
+    mode = int(input("1 to play first, 2 to play second, 3 for AI to play against itself: "))
+    if mode == 1:
+        while not board.is_terminal():
+            board.print_board()
+            x = int(input("Give an x position: "))
+            y = int(input("Give a y position: "))
+            board.make_move((y,x))
+            board.print_board()
+            if board.is_terminal():
+                break
+            board.make_move(model.ai_best_move(board))
+            board.print_board()
+    elif mode == 2:
+        while not board.is_terminal():
+            board.print_board()
+            board.make_move(model.ai_best_move(board))
+            board.print_board()
+            if board.is_terminal():
+                break
+            x = int(input("Give an x position: "))
+            y = int(input("Give a y position: "))
+            board.make_move((y,x))
+            board.print_board()
+    elif mode == 3:
+        board.print_board()
+        while not board.is_terminal():
+            board.make_move(model.ai_best_move(board))
+            board.print_board()
+            if board.is_terminal():
+                break
+            board.make_move(model.ai_best_move(board))
+            board.print_board()
+    else:
+        print("Please enter 1 or 2 or 3")
