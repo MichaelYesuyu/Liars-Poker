@@ -150,6 +150,12 @@ class MCTS(object):
             print(action_dict)
         return max(action_dict, key=action_dict.get)   
 
+    def save_model(self):
+        self.model.save('TTTModel')
+
+    def load_model(self):
+        self.model = tf.keras.models.load_model('TTTModel')
+
 class CNNModel():
     def __init__(self, board_shape):
         self.board_shape = board_shape
@@ -176,7 +182,7 @@ class CNNModel():
         #self.model.add(tf.keras.layers.MaxPool2D(pool_size=(4,4), padding='valid'))
         self.model.add(tf.keras.layers.Dropout(rate=0.2))
         self.model.add(tf.keras.layers.Flatten())
-        self.model.add(tf.keras.layers.Dense(256, activation='linear')) #Dense with linear
+        self.model.add(tf.keras.layers.Dense(64, activation='linear')) #Dense with linear
         ###self.model.add(tf.keras.layers.Dense(256, activation='linear')) #Dense with linear
         self.model.add(tf.keras.layers.Dense(1, activation='tanh')) #last layer is 1 because you just want a number for eval
         self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999,epsilon=1e-8),loss='mse') #Loss function may need changing
@@ -186,37 +192,66 @@ class CNNModel():
 if __name__ == "__main__":
     board = Board()
     model = MCTS()
-    mode = int(input("1 to play first, 2 to play second, 3 for AI to play against itself: "))
-    if mode == 1:
-        while not board.is_terminal():
+    #Using this to enter train/test mode
+    '''
+    In theory, here's what I'm trying to do:
+    If enter train mode, it will initialize a new model and train from scratch (for now)
+    If enter test mode, it will load the existing model and then save the new model from stuff learned by the game
+    '''
+    traintest = int(input("1 to train, 2 to test: "))
+    if traintest == 1:
+        iterations = int(input("Enter number of iterations (games) of self-play to train: "))
+        for _ in range(iterations):
+            while not board.is_terminal():
+                board.make_move(model.ai_best_move(board))
+                board.print_board()
+                if board.is_terminal():
+                    break
+                board.make_move(model.ai_best_move(board))
+                board.print_board()
+        model.save_model() 
+    elif traintest == 2:
+        model.load_model()
+        mode = int(input("1 to play first, 2 to play second, 3 for AI to play against itself: "))
+        if mode == 1:
+            while not board.is_terminal():
+                board.print_board()
+                x = int(input("Give an x position: "))
+                y = int(input("Give a y position: "))
+                board.make_move((y,x))
+                board.print_board()
+                if board.is_terminal():
+                    model.save_model()
+                    break
+                board.make_move(model.ai_best_move(board))
+                if board.is_terminal():
+                    model.save_model()
+                board.print_board()
+        elif mode == 2:
+            while not board.is_terminal():
+                board.print_board()
+                board.make_move(model.ai_best_move(board))
+                board.print_board()
+                if board.is_terminal():
+                    model.save_model()
+                    break
+                x = int(input("Give an x position: "))
+                y = int(input("Give a y position: "))
+                board.make_move((y,x))
+                if board.is_terminal():
+                    model.save_model()
+                board.print_board()
+        elif mode == 3:
             board.print_board()
-            x = int(input("Give an x position: "))
-            y = int(input("Give a y position: "))
-            board.make_move((y,x))
-            board.print_board()
-            if board.is_terminal():
-                break
-            board.make_move(model.ai_best_move(board))
-            board.print_board()
-    elif mode == 2:
-        while not board.is_terminal():
-            board.print_board()
-            board.make_move(model.ai_best_move(board))
-            board.print_board()
-            if board.is_terminal():
-                break
-            x = int(input("Give an x position: "))
-            y = int(input("Give a y position: "))
-            board.make_move((y,x))
-            board.print_board()
-    elif mode == 3:
-        board.print_board()
-        while not board.is_terminal():
-            board.make_move(model.ai_best_move(board))
-            board.print_board()
-            if board.is_terminal():
-                break
-            board.make_move(model.ai_best_move(board))
-            board.print_board()
-    else:
-        print("Please enter 1 or 2 or 3")
+            while not board.is_terminal():
+                board.make_move(model.ai_best_move(board))
+                board.print_board()
+                if board.is_terminal():
+                    model.save_model()
+                    break
+                board.make_move(model.ai_best_move(board))
+                if board.is_terminal():
+                    model.save_model()
+                board.print_board()
+        else:
+            print("Please enter 1 or 2 or 3")
