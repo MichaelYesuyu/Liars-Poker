@@ -20,9 +20,9 @@ class ConnectFour:
             print ("|", end = "")
             for j in range(NUM_COLS):
                 if self.board[i][j] == RED:
-                    print(" R |", end = "")
+                    print(" 🔴|", end = "")
                 elif self.board[i][j] == YELLOW:
-                    print(" Y |", end = "")
+                    print(" 🟡|", end = "")
                 else:
                     print("   |", end = "")
             print("")
