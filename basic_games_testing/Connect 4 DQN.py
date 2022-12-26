@@ -10,14 +10,14 @@ from keras.optimizers import Adam
 NUM_ROWS = 6
 NUM_COLS = 7
 NUM_CHANNELS = 1
-MIN_MEM_SIZE = 1000
+MIN_MEM_SIZE = 200
 RED = 1 
 YELLOW = -1 
 GAMMA = 0.9
 UPDATES = 10 # update our network once every 10 steps 
-MEMORY_SIZE = 5000
-MINI_BATCH_SIZE = 200
-REPLACE_COUNT = 7
+MEMORY_SIZE = 50000
+MINI_BATCH_SIZE = 32
+REPLACE_COUNT = 10
 EPS_DECAY = 0.99995
 EPS_MIN = 0.1
 EPS = 1
@@ -40,7 +40,7 @@ class ConnectFour:
     def save_model(self):
         self.active_model.save('connect_four_model_dql')
     def load_model(self):
-        self.active_model = tf.keras.models.load_model('connect_four_model_dql')
+        self.active_model = tf.keras.models.load_model('../connect_four_model_dql')
         self.training_model.set_weights(self.active_model.get_weights())  
     def build_memory(self): 
         memory = []
@@ -50,25 +50,22 @@ class ConnectFour:
     def build_model(self):
         model = tf.keras.Sequential()
         model.add(Conv2D(64, (4,4), input_shape = (NUM_ROWS, NUM_COLS, NUM_CHANNELS), activation='relu', padding='same'))
-        model.add(MaxPooling2D(pool_size=(2,2), padding='same'))
-        model.add(Dropout(0.2))
-        model.add(Conv2D(128, (4,4), activation='relu', padding='same'))
-        model.add(MaxPooling2D(pool_size=(2,2), padding='same'))
-        model.add(Conv2D(256, (3,3), activation='relu', padding='same'))
-        model.add(MaxPooling2D(pool_size=(2,2)))
+        model.add(Conv2D(128, (2,2), activation='relu', padding='same'))
+        model.add(Conv2D(128, (1,1), activation='relu', padding='same'))
         model.add(Flatten())
         model.add(Dense(128))
-        model.add(Dense(64))
+        model.add(Dense(256))
         model.add(Dense(7, activation='linear'))
         model.compile(loss = "mse", optimizer=Adam(learning_rate=0.0001), metrics=['accuracy'])
         return model
     #basically our goal here is to compute a minibatch of q values against model predictions
     def train(self):
+        if self.iterations % 200 == 0:
+            print("at iteration: ", self.iterations)
         if self.iterations < MIN_MEM_SIZE:
             return
-        if not (self.iterations % 100 == 0):
+        if not (self.iterations % 2 == 0):
             return # basically just break out here 
-        print(self.iterations)
         if self.iterations < MEMORY_SIZE:
             new_memory = random.sample(self.memory[:self.iterations], MINI_BATCH_SIZE)
         else:
@@ -83,18 +80,21 @@ class ConnectFour:
             q_new = reward
             if not terminal:
                 q_new += GAMMA * np.amax(new_qs[index])
-            q_new = np.min([np.abs(q_new), 1]) * np.sign(q_new)
+            if q_new > 1:
+                q_new = 1
+            if q_new < -1:
+                q_new = -1
             q_current = current_qs[index]
             q_current[action] = q_new
             X.append(current_state)
             Y.append(q_current)
         X = np.array(X).reshape((MINI_BATCH_SIZE, NUM_ROWS, NUM_COLS, NUM_CHANNELS))
         Y = np.array(Y)
-        self.training_model.fit(X, Y, verbose = 0, epochs=10)
+        self.training_model.fit(X, Y, verbose = 0)
         self.updates += 1
         if self.updates % REPLACE_COUNT == 0:
             self.active_model.set_weights(self.training_model.get_weights())
-            print("updating model")
+        if self.iterations % 1000 == 0:
             self.save_model()
 
     #assume current board hasn't been won
@@ -110,6 +110,17 @@ class ConnectFour:
                 if self.board[0][i][j] == RED:
                     print(" R |", end = "")
                 elif self.board[0][i][j] == YELLOW:
+                    print(" Y |", end = "")
+                else:
+                    print("   |", end = "")
+            print("")
+    def print_specific_board(self, board):
+        for i in range(NUM_ROWS):
+            print ("|", end = "")
+            for j in range(NUM_COLS):
+                if board[0][i][j] == RED:
+                    print(" R |", end = "")
+                elif board[0][i][j] == YELLOW:
                     print(" Y |", end = "")
                 else:
                     print("   |", end = "")
@@ -238,18 +249,19 @@ class ConnectFour:
             move = np.random.choice(columns)
         if self.is_terminal(move, True):
             reward = 1
-            start_board = self.board
+            start_board = self.board.copy()
             self.make_move(move, True)
-            end_board = self.board
-            self.undo_move(move)
+            end_board = self.board.copy()
             input_tuple = (start_board, move, reward, end_board, True)
             self.update_memory(input_tuple)
             return reward
         else:
-            start_board = self.board
+            start_board = self.board.copy()
             self.make_move(move, True)
             self.invert_perspective()
             reward = 0
+            tops_mask = [self.tops[column] >= 0 for column in columns]
+            columns = columns[tops_mask]
             move_enem = columns[np.argmax([model_q_values[col] for col in columns])]
             is_terminal = False
             if self.is_terminal(move_enem, True):
@@ -257,10 +269,9 @@ class ConnectFour:
                 is_terminal = True
             self.make_move(move_enem, True)
             self.invert_perspective()
-            end_board = self.board
+            end_board = self.board.copy()
             self.undo_move(move_enem)
             self.NN_episode_train()
-            self.undo_move(move)
             input_tuple = (start_board, move, reward, end_board, is_terminal)
             self.update_memory(input_tuple)
             return 0
@@ -290,6 +301,7 @@ if __name__ == "__main__":
     train_or_test = int(input("0 to train, 1 to test: "))
     if train_or_test == 0:
         board = ConnectFour(False)
+        board.load_model() # load the last saved model
         num_iters = int(input("enter the number of iterations that you want to train for: "))
         for i in range(num_iters):
             if i % 100 == 0:
