@@ -3,7 +3,7 @@ import numpy.linalg as la
 import time 
 import tensorflow as tf
 import random
-from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Dropout, Activation
+from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Dropout, Activation, SeparableConv2D
 
 from keras.optimizers import Adam
 
